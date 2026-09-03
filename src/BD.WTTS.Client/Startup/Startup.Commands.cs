@@ -508,6 +508,25 @@ partial class Startup // 自定义控制台命令参数
         rootCommand.Subcommands.Add(sudo);
 #endif
 
+#if LINUX
+        // -clt proxy-headless: 无UI的代理服务模式（仅Linux）
+        var proxy_headless = new Command("proxy-headless", "无UI的代理服务模式（仅Linux），自动启用所有加速站点")
+        {
+        };
+        proxy_headless.SetAction(async parseResult =>
+        {
+            IsMainProcess = true;
+
+            // 设置代理相关配置
+            IsProxyService = true;
+            ProxyServiceStatus = OnOffToggle.On;
+
+            // 不包含UI级别
+            RunUIApplication(AppServicesLevel.ServerApiClient | AppServicesLevel.HttpClientFactory | AppServicesLevel.Hosts | AppServicesLevel.HttpProxy);
+        });
+        rootCommand.Subcommands.Add(proxy_headless);
+#endif
+
         // -clt plugins -l {AppServicesLevel} -m {插件名} -n {PipeName} -p {ProcessId} -a {插件需要解析的参数}
         var plugins_l = new Option<uint>("-l")
         {

@@ -447,6 +447,36 @@ public sealed partial class ProxyService
             var enableItems = ProxySettings.SupportProxyServicesStatus.Value;
             RestoreAccelerateEnableAllIds(items, enableItems);
         }
+        else
+        {
+            // 默认启用所有加速站点
+            EnableAllAccelerateSites();
+        }
+    }
+
+    /// <summary>
+    /// 启用所有加速站点
+    /// </summary>
+    private void EnableAllAccelerateSites()
+    {
+        if (!ProxyDomains.Items.Any_Nullable())
+            return;
+
+        foreach (var group in ProxyDomains.Items)
+        {
+            if (group.Items != null)
+            {
+                foreach (var item in group.Items)
+                {
+                    item.ThreeStateEnable = true;
+                }
+            }
+        }
+
+        // 保存启用状态
+        var allIds = GetAccelerateEnableAllIds(ProxyDomains.Items.SelectMany(s => s.Items));
+        ProxySettings.SupportProxyServicesStatus.Value = allIds.ToImmutableHashSet();
+        IsChangeSupportProxyServicesStatus = true;
     }
 
     public static bool IsChangeSupportProxyServicesStatus { get; set; }
