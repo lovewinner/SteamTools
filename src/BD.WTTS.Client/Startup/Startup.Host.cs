@@ -114,7 +114,7 @@ partial class Startup // 配置 Host
         }
 #endif
 
-        if (IsMainProcess)
+        if (IsMainProcess && !IsHeadlessProxy)
         {
             if (!InitSingleInstancePipeline(sendMessage))
             {
@@ -233,7 +233,7 @@ partial class Startup // 配置 Host
 
         LoadLogicApplication();
 
-        if (!IsDesignMode && IsMainProcess)
+        if (!IsDesignMode && IsMainProcess && !IsHeadlessProxy)
             StartUIApplication();
     }
 

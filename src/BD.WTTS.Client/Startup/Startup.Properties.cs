@@ -58,6 +58,11 @@ partial class Startup // Properties
     public bool IsProxyService { get; private set; }
 
     /// <summary>
+    /// 是否为无 UI 的代理服务模式（Linux Headless，不启动 UI）
+    /// </summary>
+    public bool IsHeadlessProxy { get; set; }
+
+    /// <summary>
     /// 代理服务状态
     /// </summary>
     public OnOffToggle ProxyServiceStatus { get; private set; }

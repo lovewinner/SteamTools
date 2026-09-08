@@ -103,6 +103,22 @@ public sealed class IPCSubProcessServiceImpl : IPCSubProcessService
             }
         }
 
+if (OperatingSystem.IsLinux())
+        {
+            // Linux 下主进程可能通过 `dotnet Steam++.dll`（进程主模块为 dotnet 宿主）或
+            // apphost（Steam++）运行，两者均为 ELF 文件，FileVersionInfo 校验无法通过，
+            // 因此改为校验其命令行是否包含本产品引用。
+            try
+            {
+                var cmdLine = File.ReadAllText($"/proc/{proc.Id}/cmdline").Replace('\0', ' ');
+                return cmdLine.Contains("Steam++", StringComparison.OrdinalIgnoreCase);
+            }
+            catch
+            {
+                // 无法读取命令行时按原逻辑失败
+            }
+        }
+
         return false;
     }
 

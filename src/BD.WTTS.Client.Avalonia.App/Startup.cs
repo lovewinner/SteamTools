@@ -124,6 +124,11 @@ sealed partial class Program : Startup
             WatchTrace.Record("ConfigureDemandServices.UI");
 #endif
         }
+        else
+        {
+            // Headless（无 UI）模式：注册无操作 Toast，避免 ScriptManager/ProxyService 等依赖 IToast 的服务解析失败
+            services.TryAddSingleton<IToast, HeadlessToast_>();
+        }
         if (HasHttpClientFactory || HasServerApiClient)
         {
             // 添加 Http 平台助手桌面端或移动端实现
@@ -244,6 +249,20 @@ sealed partial class Program : Startup
 #if STARTUP_WATCH_TRACE || DEBUG
         WatchTrace.Stop();
 #endif
+    }
+
+    /// <summary>
+    /// Headless（无 UI）模式下的无操作 Toast 实现
+    /// </summary>
+    sealed class HeadlessToast_ : IToast
+    {
+        public void Show(BD.Common.Enums.ToastIcon icon, string text, int? duration = null)
+        {
+        }
+
+        public void Show(BD.Common.Enums.ToastIcon icon, string text, BD.Common.Enums.ToastLength duration)
+        {
+        }
     }
 
     sealed class Essentials_AppVerS : IApplicationVersionService

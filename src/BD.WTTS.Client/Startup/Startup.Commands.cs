@@ -2,6 +2,7 @@
 using dotnetCampus.Ipc.CompilerServices.GeneratedProxies;
 using System.CommandLine;
 using Command = System.CommandLine.Command;
+using ReactiveUI.Builder;
 #endif
 
 // ReSharper disable once CheckNamespace
@@ -522,7 +523,37 @@ partial class Startup // 自定义控制台命令参数
             ProxyServiceStatus = OnOffToggle.On;
 
             // 不包含UI级别
+            IsHeadlessProxy = true;
+            // Headless 模式无 UI 事件循环，需手动初始化 ReactiveUI（UI 模式由 Avalonia 的 UseReactiveUI 完成）
+            RxAppBuilder.CreateReactiveUIBuilder().WithCoreServices().BuildApp();
             RunUIApplication(AppServicesLevel.ServerApiClient | AppServicesLevel.HttpClientFactory | AppServicesLevel.Hosts | AppServicesLevel.HttpProxy);
+
+            // Headless 模式：等待服务初始化完成后启动 IPC 服务端与插件（会拉起反向代理子进程），再无限阻塞主线程
+            await WaitConfiguredServices;
+
+            try
+            {
+                IPCMainProcessService.Instance.Run();
+            }
+            catch (Exception ex)
+            {
+            }
+
+            if (TryGetPlugins(out var plugins_))
+            {
+                foreach (var plugin in plugins_)
+                {
+                    try
+                    {
+                        await plugin.OnInitializeAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                    }
+                }
+            }
+
+            await Task.Delay(Timeout.Infinite);
         });
         rootCommand.Subcommands.Add(proxy_headless);
 #endif
